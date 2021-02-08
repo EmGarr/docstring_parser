@@ -43,7 +43,11 @@ MULTIPLE_PATTERN = re.compile(r"(\s*[^:\s]+:)|([^:]*\]:.*)")
 
 DEFAULT_SECTIONS = [
     Section("Arguments", "param", SectionType.MULTIPLE),
+    Section("Argument", "param", SectionType.MULTIPLE),
     Section("Args", "param", SectionType.MULTIPLE),
+    Section("Call arguments", "param", SectionType.MULTIPLE),
+    Section("Call returns", "returns", SectionType.SINGULAR_OR_MULTIPLE),
+    Section("Call return", "returns", SectionType.SINGULAR_OR_MULTIPLE),
     Section("Parameters", "param", SectionType.MULTIPLE),
     Section("Params", "param", SectionType.MULTIPLE),
     Section("Raises", "raises", SectionType.MULTIPLE),
@@ -53,7 +57,9 @@ DEFAULT_SECTIONS = [
     Section("Example", "examples", SectionType.SINGULAR),
     Section("Examples", "examples", SectionType.SINGULAR),
     Section("Returns", "returns", SectionType.SINGULAR_OR_MULTIPLE),
+    Section("Return", "returns", SectionType.SINGULAR_OR_MULTIPLE),
     Section("Yields", "yields", SectionType.SINGULAR_OR_MULTIPLE),
+    Section("Yield", "yields", SectionType.SINGULAR_OR_MULTIPLE),
 ]
 
 
