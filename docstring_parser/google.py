@@ -8,14 +8,18 @@ from enum import IntEnum
 
 from .common import (
     PARAM_KEYWORDS,
+    CALL_PARAM_KEYWORDS,
     RAISES_KEYWORDS,
     RETURNS_KEYWORDS,
+    CALL_RETURNS_KEYWORDS,
     YIELDS_KEYWORDS,
     Docstring,
     DocstringMeta,
     DocstringParam,
+    DocstringCallParam,
     DocstringRaises,
     DocstringReturns,
+    DocstringCallReturns,
     ParseError,
 )
 
@@ -45,9 +49,9 @@ DEFAULT_SECTIONS = [
     Section("Arguments", "param", SectionType.MULTIPLE),
     Section("Argument", "param", SectionType.MULTIPLE),
     Section("Args", "param", SectionType.MULTIPLE),
-    Section("Call arguments", "param", SectionType.MULTIPLE),
-    Section("Call returns", "returns", SectionType.SINGULAR_OR_MULTIPLE),
-    Section("Call return", "returns", SectionType.SINGULAR_OR_MULTIPLE),
+    Section("Call arguments", "call_args", SectionType.MULTIPLE),
+    Section("Call returns", "call_returns", SectionType.SINGULAR_OR_MULTIPLE),
+    Section("Call return", "call_returns", SectionType.SINGULAR_OR_MULTIPLE),
     Section("Parameters", "param", SectionType.MULTIPLE),
     Section("Params", "param", SectionType.MULTIPLE),
     Section("Raises", "raises", SectionType.MULTIPLE),
@@ -127,6 +131,13 @@ class GoogleParser:
                 type_name=None,
                 is_generator=section.key in YIELDS_KEYWORDS,
             )
+        if section.key in CALL_RETURNS_KEYWORDS:
+            return DocstringCallReturns(
+                args=[section.key],
+                description=desc,
+                type_name=None,
+                is_generator=section.key in YIELDS_KEYWORDS,
+            )
         if section.key in RAISES_KEYWORDS:
             return DocstringRaises(
                 args=[section.key], description=desc, type_name=None
@@ -165,8 +176,42 @@ class GoogleParser:
                 is_optional=is_optional,
                 default=default,
             )
+        if section.key in CALL_PARAM_KEYWORDS:
+            m = GOOGLE_TYPED_ARG_REGEX.match(before)
+            if m:
+                arg_name, type_name = m.group(1, 2)
+                if type_name.endswith(", optional"):
+                    is_optional = True
+                    type_name = type_name[:-10]
+                elif type_name.endswith("?"):
+                    is_optional = True
+                    type_name = type_name[:-1]
+                else:
+                    is_optional = False
+            else:
+                arg_name, type_name = before, None
+                is_optional = None
+
+            m = GOOGLE_ARG_DESC_REGEX.match(desc)
+            default = m.group(1) if m else None
+
+            return DocstringCallParam(
+                args=[section.key, before],
+                description=desc,
+                arg_name=arg_name,
+                type_name=type_name,
+                is_optional=is_optional,
+                default=default,
+            )
         if section.key in RETURNS_KEYWORDS | YIELDS_KEYWORDS:
             return DocstringReturns(
+                args=[section.key, before],
+                description=desc,
+                type_name=before,
+                is_generator=section.key in YIELDS_KEYWORDS,
+            )
+        if section.key in CALL_RETURNS_KEYWORDS:
+            return DocstringCallReturns(
                 args=[section.key, before],
                 description=desc,
                 type_name=before,
